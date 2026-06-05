@@ -1,0 +1,79 @@
+// frontend/js/geoData.js — Centralized AP District and Mandal Data
+
+const GeoData = {
+  data: {
+    "Alluri Sitharama Raju": ["Addateegala", "Ananthagiri", "Araku Valley", "Chintapalli", "Chintur", "Devipatnam", "Dumbriguda", "Etapaka", "Gangavaram", "Gudem Kotha Veedhi", "Hukumpeta", "Koonavaram", "Maredumilli", "Muchumilli", "Paderu", "Paderu", "Pajari", "Peda Bayalu", "Rajavommangi", "Rampachodavaram", "Vararamachandrapuram", "Y. Ramavaram"],
+    "Anakapalli": ["Anakapalli", "Atchutapuram", "Butchayyapeta", "Cheedikada", "Chodavaram", "Devarapalle", "Elamanchili", "K. Kotapadu", "Kasimkota", "Kotauratla", "Madugula", "Makavarapalem", "Munagapaka", "Nakkapalle", "Narsipatnam", "Nathavaram", "Parawada", "Payakaraopeta", "Rambilli", "Ravikamatham", "Rolugunta", "S. Rayavaram", "Sabbavaram", "V. Madugula"],
+    "Ananthapuramu": ["Anantapur", "Atmakur", "Beluguppa", "Bommanahal", "Brahmasamudram", "Bukkarayasamudram", "D. Hirehal", "Garladinne", "Gooty", "Gummagatta", "Guntakal", "Kalyandurg", "Kambadur", "Kanekal", "Kudair", "Kundurpi", "Narpala", "Pamidi", "Peddapappur", "Peddavadugur", "Putlur", "Raptadu", "Rayadurg", "Settur", "Singanamala", "Tadpatri", "Uravakonda", "Vajrakarur", "Vidapanakal", "Yadiki", "Yellanur"],
+    "Annamayya": ["B. Kothakota", "Chinnamandem", "Galiveedu", "Gurramkonda", "K.V. Palle", "Kalakada", "Kalikiri", "Kambhamvaripalli", "Lakkireddipalli", "Madanapalle", "Nimmanapalle", "Pedda Mandyam", "Peddatippasamudram", "Pileru", "Punganur", "Ramapuram", "Ramasamudram", "Rayachoti", "Sambepalli", "T. Sundupalli", "Valmikipuram", "Vayalpad"],
+    "Bapatla": ["Addanki", "Amruthalur", "Ballaikurava", "Bapatla", "Cherukupalli", "Chinaganjam", "Inkollu", "Janakavaram Panguluru", "Karamchedu", "Karlapalem", "Korisapadu", "Martur", "Nizampatnam", "Panguluru", "Parchur", "Pittalavanipalem", "Repalle", "Santhamaguluru", "Tsundur", "Vemuru", "Yeddanalapudi"],
+    "Chittoor": ["Bangarupalem", "Chittoor", "Chowdepalle", "Gangadhara Nellore", "Gudipala", "Irala", "Karvetinagar", "Kuppam", "Nagari", "Nindra", "Palamaner", "Palasamudram", "Penumuru", "Punganur", "Puthalapattu", "Ramakuppam", "Routhusuramala", "Santhipuram", "Srirangarajapuram", "Thavanampalle", "Vedurukuppam", "Venkatagirikota", "Vijayapuram", "Yadamari"],
+    "Dr. B. R. Ambedkar Konaseema": ["Ainavilli", "Alamuru", "Atreyapuram", "I. Polavaram", "K Kapileswarapuram", "Katrenikona", "Kothapeta", "Malikipuram", "Mamidikuduru", "Mandapeta", "Mummidivaram", "P. Gannavaram", "Pamarru", "Razole", "Ravulapalem", "Rayavaram", "Sakhinetipalli", "Uppalaguptam"],
+    "East Godavari": ["Anaparthi", "Biccavolu", "Chagallu", "Devarapalle", "Gokavaram", "Kadiam", "Korukonda", "Kovvur", "Nallajerla", "Nidadavole", "Peravali", "Rajahmundry Rural", "Rajahmundry Urban", "Rajanagaram", "Seethanagaram", "Tallapudi", "Undrajavaram"],
+    "Eluru": ["Agiripalli", "Bhimadole", "Chatrai", "Chintalapudi", "Denduluru", "Dwaraka Tirumala", "Eluru", "Jangareddigudem", "Jeelugumilli", "Kamavarapukota", "Koyyalagudem", "Lingapalem", "Musunuru", "Nuzvid", "Pedapadu", "Pedavegi", "Polavaram", "T. Narsapuram", "Unguturu"],
+    "Guntur": ["Chebrolu", "Guntur East", "Guntur West", "Kakumanu", "Medikonduru", "Pedakakani", "Pedanandipadu", "Phirangipuram", "Prathipadu", "Tadikonda", "Vatticherukuru"],
+    "Kakinada": ["Gandepalle", "Gollaprolu", "Jaggampeta", "Kajuluru", "Kakinada Rural", "Kakinada Urban", "Karapa", "Kirlampudi", "Pedapudi", "Pithapuram", "Prathipadu", "Rowthulapudi", "Samalkota", "Sankhavaram", "Thallarevu", "Tuni", "Uppada Kothapalle", "Yeleswaram"],
+    "Krishna": ["Avanigadda", "Bantumilli", "Challapalli", "Gannavaram", "Ghirajala", "Gudivada", "Guduru", "Ibrahimpatnam", "Kanchikacherla", "Koduru", "Kruthivennu", "Machilipatnam", "Mopidevi", "Movva", "Nagayalanka", "Nandigama", "Pamidimukkala", "Pedana"],
+    "Kurnool": ["Adoni", "Alur", "Aspari", "C.Belagal", "Devanakonda", "Goneandla", "Gudur", "Halaharvi", "Holagunda", "Kallur", "Kodumur", "Kowthalam", "Kurnool", "Mantralayam", "Nandavaram", "Orvakal", "Panyam", "Pattikonda", "Pedda Kadubur", "Tuggali", "Yemmiganur"],
+    "Nandyal": ["Allagadda", "Atmakur", "Banaganapalle", "Bethamcherla", "Chagalamarri", "Dhone", "Gadigarevula", "Koilkuntla", "Kolimigundla", "Mahanandi", "Nandikotkur", "Nandyal", "Owk", "Pagidyala", "Peapully", "Rudravaram", "Srisailam", "Uyyalawada", "Velgode"],
+    "NTR": ["Chandarlapadu", "G.Konduru", "Ibrahimpatnam", "Jaggayyapeta", "Kanchikacherla", "Mylavaram", "Nandigama", "Penuganchiprolu", "Reddygudem", "Tiruvuru", "Vatsavai", "Vijayawada Rural", "Vijayawada Urban", "Vissannapeta"],
+    "Palnadu": ["Amaravati", "Atchampet", "Bellamkonda", "Chilakaluripet", "Dachepalle", "Gurazala", "Ipur", "Krosuru", "Macherla", "Machavaram", "Madanapalle", "Nadendla", "Narasaraopet", "Piduguralla", "Piduguralla", "Rajupalem", "Rompicherla", "Sattenapalle", "Veldurthi"],
+    "Parvathipuram Manyam": ["Balajipeta", "Bhamini", "Garugubilli", "Gummalaxmipuram", "Jiyyammavalasa", "Komarada", "Kurupam", "Makkuva", "Pachipenta", "Palakonda", "Parvathipuram", "Salur", "Seethampeta", "Therlam", "Veeraghattam"],
+    "Prakasam": ["Addanki", "Ballikurava", "Chimakurthi", "Darsi", "Donakonda", "Giddalur", "Kandukur", "Kanigiri", "Markapur", "Mundlamuru", "Naguluppalapadu", "Ongole", "Podili", "Singarayakonda", "Tarlupadu", "Yerragondapalem"],
+    "Sri Potti Sriramulu Nellore": ["Allur", "Atmakur", "Balayapalli", "Buchireddipalem", "Dagadarthi", "Indukurpet", "Kaligiri", "Kavali", "Kodavalur", "Kovur", "Muttukuru", "Nellore Rural", "Nellore Urban", "Podalakur", "Sangam", "Udayagiri", "Venkatachalam", "Vidavalur"],
+    "Sri Sathya Sai": ["Agali", "Amadagur", "Amarapuram", "Bukkapatnam", "Chennekothapalli", "Chilamathur", "Dharmavaram", "Gandlapenta", "Gorantla", "Gudibanda", "Hindupur", "Kadiri", "Kanaganapalli", "Lepakshi", "Madakasira", "Mudigubba", "Nallamada", "Nambulapulakunta", "Odulapalli", "Parigi", "Penukonda", "Puttaparthi", "Ramagiri", "Rolla", "Somandepalle", "Talupula", "Tanakal"],
+    "Srikakulam": ["Amadalavalasa", "Burja", "Etcherla", "Gara", "Hiramandalam", "Ichapuram", "Jalumuru", "Kanchili", "Kavali", "Kotabommali", "Kothuru", "Lakshminarsupeta", "Mandasa", "Meliaputti", "Nandigam", "Narasannapeta", "Palasa", "Polaki", "Ponduru", "Ranasthalam", "Sarubujjili", "Sompeta", "Srikakulam", "Tekkali", "Vajrapukotturu"],
+    "Tirupati": ["Chandragiri", "Chittoor", "Gudur", "Kalasapadu", "Naidupeta", "Ojili", "Pakala", "Puttur", "Renigunta", "Satyavedu", "Srikalahasti", "Sullurpeta", "Tada", "Tirupati Rural", "Tirupati Urban", "Varadaiahpalem", "Venkatagiri", "Yerravaripalem"],
+    "Visakhapatnam": ["Anandapuram", "Bheemunipatnam", "Gajuwaka", "Maharanipeta", "Mulagada", "Padmanabham", "Pedagantyada", "Pendurthi", "Seethammadhara", "Visakhapatnam Rural", "Visakhapatnam Urban"],
+    "Vizianagaram": ["Badangi", "Bobbili", "Bondapalle", "Cheepurupalle", "Dattirajeru", "Gajapathinagaram", "Gantyada", "Garividi", "Gurla", "Jami", "Kothavalasa", "Lakkavarapukota", "Mentada", "Merakamudidam", "Nellimarla", "Pusapatirega", "S.Kota", "Terlam", "Vangara", "Vizianagaram"],
+    "West Godavari": ["Achanta", "Akividu", "Bhimavaram", "Iragavaram", "Kalla", "Mogalthur", "Narasapuram", "Palacole", "Palakoderu", "Penumantra", "Penugonda", "Poduru", "Tanuku", "Undi", "Veeravasaram", "Yelamanchili"],
+    "YSR Kadapa": ["Badvel", "Chakrayapet", "Chennur", "Chinnamandem", "Galiveedu", "Gopavaram", "Jammalamadugu", "Kadapa", "Kamalapuram", "Khajipet", "Lakkireddipalli", "Lingala", "Muddanur", "Mydukur", "Pendlimarri", "Proddatur", "Pulivendula", "Rajampet", "Rayachoti", "Sidhavattam", "Vempalli", "Yerraguntla"]
+  },
+
+  populateDistricts(selectId, placeholder = "Select District") {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = `<option value="">${placeholder}</option>` + 
+      Object.keys(this.data).sort().map(d => `<option value="${d}" ${d === currentVal ? 'selected' : ''}>${d}</option>`).join('');
+  },
+
+  setupDependentDropdown(distId, mandalId, currentMandal = "") {
+    const distSelect = document.getElementById(distId);
+    const mandalSelect = document.getElementById(mandalId);
+    if (!distSelect || !mandalSelect) return;
+
+    const updateMandals = () => {
+      const dist = distSelect.value;
+      if (!dist) {
+        mandalSelect.innerHTML = '<option value="">Select Mandal</option>';
+        mandalSelect.disabled = true;
+        return;
+      }
+      const mandals = this.data[dist] || [];
+      mandalSelect.innerHTML = '<option value="">Select Mandal</option>' + 
+        mandals.sort().map(m => `<option value="${m}" ${m === currentMandal ? 'selected' : ''}>${m}</option>`).join('');
+      mandalSelect.disabled = false;
+    };
+
+    distSelect.addEventListener('change', () => {
+      currentMandal = ""; // Reset current on change
+      updateMandals();
+    });
+    
+    // Initial load
+    updateMandals();
+  },
+
+  // Helper for dynamic templates (JS literals)
+  getDistrictOptions(selected = "") {
+    return Object.keys(this.data).sort().map(d => `<option value="${d}" ${d === selected ? 'selected' : ''}>${d}</option>`).join('');
+  },
+
+  getMandalOptions(district, selected = "") {
+    if (!district) return '<option value="">Select Mandal</option>';
+    const mandals = this.data[district] || [];
+    return '<option value="">Select Mandal</option>' + 
+      mandals.sort().map(m => `<option value="${m}" ${m === selected ? 'selected' : ''}>${m}</option>`).join('');
+  }
+};

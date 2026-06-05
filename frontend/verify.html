@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate Verification — BhoomiSeva</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { background: var(--surface); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+  .verify-card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(13,33,55,0.08); width: 100%; max-width: 500px; }
+  .logo { text-align: center; margin-bottom: 20px; }
+  .logo svg { width: 50px; height: 50px; }
+  .result { margin-top: 20px; display: none; padding: 20px; border-radius: 8px; }
+  .result.valid { background: #e8f5e9; border: 1px solid #1d9e75; }
+  .result.invalid { background: #ffebee; border: 1px solid #e24b4a; }
+  .result-header { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 15px; font-size: 18px; }
+  .valid .result-header { color: #1d9e75; }
+  .invalid .result-header { color: #e24b4a; }
+  .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+  .detail-label { color: var(--text-3); font-weight: 600; }
+  .detail-val { font-weight: 500; color: var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="verify-card">
+  <div class="logo">
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>
+    <h2 style="color:var(--navy);margin-top:10px;">BhoomiSeva</h2>
+    <p style="color:var(--text-3);font-size:13px;">Official Certificate Verification</p>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">Enter Certificate Number or Verification Code</label>
+    <div style="display:flex;gap:10px;">
+      <input type="text" id="verify-code" class="form-control" placeholder="e.g. MUT-2026-123456 or A1B2C3" style="flex:1;">
+      <button class="btn btn-primary" onclick="verifyCertificate()" id="btn-verify">Verify</button>
+    </div>
+  </div>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+  async function verifyCertificate() {
+    const code = document.getElementById('verify-code').value.trim();
+    const btn = document.getElementById('btn-verify');
+    const resultDiv = document.getElementById('result');
+    
+    if (!code) return;
+
+    btn.disabled = true;
+    btn.innerHTML = 'Verifying...';
+    resultDiv.style.display = 'none';
+    resultDiv.className = 'result';
+
+    try {
+      const res = await fetch(`/api/applications/verify/${code}`);
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        resultDiv.classList.add('invalid');
+        resultDiv.innerHTML = `
+          <div class="result-header"><i class="ti ti-circle-x"></i> Invalid Certificate</div>
+          <p style="font-size:13px;color:var(--text-2);">The code provided does not match any official records in our system. Please check the code and try again.</p>
+        `;
+      } else {
+        const app = json.data;
+        const cert = app.certificateDetails;
+        resultDiv.classList.add('valid');
+        resultDiv.innerHTML = `
+          <div class="result-header"><i class="ti ti-circle-check"></i> Verified Authentic</div>
+          <div class="detail-row"><span class="detail-label">Certificate No:</span><span class="detail-val">${cert.certificateNumber}</span></div>
+          <div class="detail-row"><span class="detail-label">Certificate Type:</span><span class="detail-val" style="text-transform:capitalize;">${app.applicationType.replace(/_/g, ' ')}</span></div>
+          <div class="detail-row"><span class="detail-label">Issue Date:</span><span class="detail-val">${new Date(cert.issueDate).toLocaleDateString('en-IN')}</span></div>
+          <div class="detail-row"><span class="detail-label">Applicant Name:</span><span class="detail-val">${app.applicantName}</span></div>
+          <div class="detail-row"><span class="detail-label">District/Mandal:</span><span class="detail-val">${app.district}, ${app.mandal}</span></div>
+          <div class="detail-row"><span class="detail-label">Issuing Officer:</span><span class="detail-val">${cert.issuingOfficer}</span></div>
+          <div style="margin-top:15px;text-align:center;">
+            <a href="http://localhost:5000${cert.pdfPath}" target="_blank" class="btn btn-outline btn-sm"><i class="ti ti-download"></i> Download Original PDF</a>
+          </div>
+        `;
+      }
+    } catch (err) {
+      resultDiv.classList.add('invalid');
+      resultDiv.innerHTML = `<div class="result-header"><i class="ti ti-alert-triangle"></i> Verification Error</div><p style="font-size:13px;">Unable to connect to verification server.</p>`;
+    }
+
+    resultDiv.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = 'Verify';
+  }
+
+  // Auto-verify if code is in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCode = urlParams.get('code');
+  if (urlCode) {
+    document.getElementById('verify-code').value = urlCode;
+    verifyCertificate();
+  }
+</script>
+</body>
+</html>

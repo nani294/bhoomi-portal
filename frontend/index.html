@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BhoomiSeva — Smart Land Record Verification Portal</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<!-- Leaflet GIS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="css/style.css">
+<style>
+#register-screen { display:none; min-height:100vh; }
+.register-page { min-height:100vh; background:var(--surface); display:flex; flex-direction:column; }
+.reg-topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 32px; display:flex; align-items:center; justify-content:space-between; }
+.reg-topbar .r-logo { display:flex; align-items:center; gap:10px; }
+.reg-topbar .r-logo-icon { width:36px; height:36px; background:var(--navy); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--gold-light); font-size:18px; }
+.reg-topbar .r-logo-name { font-weight:700; font-size:16px; color:var(--navy); }
+.reg-topbar .r-logo-tag { font-size:11px; color:var(--text-3); }
+.reg-body { flex:1; display:flex; align-items:flex-start; justify-content:center; padding:36px 20px; }
+.reg-container { width:100%; max-width:880px; }
+.reg-header { text-align:center; margin-bottom:28px; }
+.reg-header .step-badge { display:inline-flex; align-items:center; gap:6px; background:var(--navy); color:#fff; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:600; margin-bottom:12px; }
+.reg-header h1 { font-size:24px; font-weight:700; margin-bottom:6px; }
+.reg-header p { font-size:14px; color:var(--text-3); }
+.info-banner { background:linear-gradient(120deg,var(--navy) 0%,var(--navy-mid) 100%); border-radius:var(--radius-lg); padding:20px 24px; margin-bottom:20px; display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.ib-item { display:flex; align-items:flex-start; gap:10px; }
+.ib-item i { color:var(--gold-light); font-size:18px; flex-shrink:0; margin-top:2px; }
+.ib-item strong { display:block; color:#fff; font-size:13px; margin-bottom:2px; }
+.ib-item span { font-size:12px; color:rgba(255,255,255,0.6); }
+.reg-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md); }
+.reg-card-head { background:linear-gradient(120deg,var(--navy) 0%,var(--navy-mid) 100%); padding:18px 28px; display:flex; align-items:center; justify-content:space-between; }
+.reg-card-head h2 { font-size:16px; font-weight:600; color:#fff; }
+.reg-card-head p { font-size:12px; color:rgba(255,255,255,0.6); margin-top:2px; }
+.prog-dots { display:flex; align-items:center; gap:6px; }
+.pdot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.25); transition:background 0.3s; }
+.pdot.active { background:var(--gold-light); }
+.pdot.done { background:var(--teal-light); }
+.reg-card-body { padding:28px; }
+.sec-title { font-size:12px; font-weight:700; color:var(--navy); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--navy); display:flex; align-items:center; gap:8px; }
+.r-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:22px; }
+.r-grid .s2 { grid-column:span 2; }
+.r-grid .s3 { grid-column:span 3; }
+.form-hint { font-size:11px; color:var(--text-3); margin-top:3px; }
+.str-bar { height:4px; background:var(--surface-2); border-radius:2px; margin-top:5px; overflow:hidden; }
+.str-fill { height:100%; border-radius:2px; transition:all 0.3s; width:0; }
+.str-txt { font-size:11px; margin-top:3px; }
+.pwd-reqs { background:var(--surface); border-radius:var(--radius); padding:12px 14px; margin-bottom:18px; }
+.pwd-reqs-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:6px; }
+.req-item { font-size:12px; color:var(--text-3); display:flex; align-items:center; gap:6px; transition:color 0.2s; }
+.req-item.met { color:var(--teal); }
+.terms-box { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:10px; }
+.terms-box label { display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; color:var(--text-2); line-height:1.6; }
+.terms-box input[type=checkbox] { margin-top:3px; flex-shrink:0; width:15px; height:15px; cursor:pointer; }
+.reg-footer { background:var(--surface); padding:16px 28px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.reg-footer .already { font-size:13px; color:var(--text-3); }
+.reg-footer .already a { color:var(--navy); font-weight:600; text-decoration:underline; cursor:pointer; }
+.success-wrap { text-align:center; padding:3rem 2rem; }
+.success-ico { width:80px; height:80px; background:var(--teal-pale); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:36px; color:var(--teal); }
+.suc-details { background:var(--teal-pale); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:24px; text-align:left; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.suc-item label { font-size:11px; color:var(--text-3); display:block; margin-bottom:2px; }
+.suc-item strong { font-size:13px; color:var(--text-1); }
+@media(max-width:900px){
+  .r-grid { grid-template-columns:1fr 1fr; }
+  .r-grid .s3 { grid-column:span 2; }
+  .info-banner { grid-template-columns:1fr 1fr; }
+  .reg-body { padding:20px 12px; }
+}
+@media(max-width:600px){
+  .r-grid { grid-template-columns:1fr; }
+  .r-grid .s2,.r-grid .s3 { grid-column:span 1; }
+  .info-banner { grid-template-columns:1fr 1fr; }
+  .reg-card-head { flex-direction:column; gap:8px; align-items:flex-start; }
+  .suc-details { grid-template-columns:1fr; }
+  .reg-topbar { padding:10px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ LANDING SCREEN ══════════════════════════════ -->
+<div id="landing-screen" class="landing-page fade-in">
+  <nav class="landing-nav">
+    <div class="landing-logo">
+      <div class="l-icon"><i class="ti ti-building-estate"></i></div>
+      <div class="l-text">
+        <span class="l-title">BhoomiSeva</span>
+        <span class="l-subtitle">Government of Andhra Pradesh</span>
+      </div>
+    </div>
+    <div class="landing-links">
+      <a href="#services">Services</a>
+      <a href="#features">Features</a>
+      <a href="#statistics">Statistics</a>
+      <a href="verify.html" class="verify-link"><i class="ti ti-shield-check"></i> Verify Certificate</a>
+      <button class="btn btn-outline" onclick="showLoginPage()"><i class="ti ti-login"></i> Official Login</button>
+      <button class="btn btn-primary" onclick="showLoginPage()"><i class="ti ti-user"></i> Citizen Login</button>
+    </div>
+  </nav>
+
+  <header class="landing-hero">
+    <!-- Background blobs -->
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge"><i class="ti ti-shield-check"></i> Official Land Records Portal · AP Gov</div>
+      <h1 class="hero-title">Securing Your Land,<br><em>Empowering</em> Your Future.</h1>
+      <p class="hero-desc">BhoomiSeva is the modernized, secure platform for digital land record management, transparent mutation tracking, and instant certification across Andhra Pradesh.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" onclick="showRegisterPage()"><i class="ti ti-user-plus"></i> Register as Citizen</button>
+        <button class="btn btn-outline btn-lg" onclick="document.getElementById('track').scrollIntoView({behavior: 'smooth'})"><i class="ti ti-radar"></i> Track Application</button>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item"><i class="ti ti-lock"></i> End-to-end Encrypted</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><i class="ti ti-check"></i> Govt. Certified</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><i class="ti ti-clock"></i> 24/7 Available</div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="glass-card">
+        <div class="glass-header"><i class="ti ti-map-2"></i> Real-time GIS Integration</div>
+        <div class="glass-body">
+          <div class="g-line" style="width:80%"></div>
+          <div class="g-line" style="width:100%"></div>
+          <div class="g-line" style="width:55%"></div>
+          <div class="g-polygon"></div>
+        </div>
+      </div>
+      <div class="glass-card g-small">
+        <div class="g-mini-stat">
+          <div class="g-mini-icon" style="background:var(--teal-pale);color:var(--teal);"><i class="ti ti-shield-check"></i></div>
+          <div>
+            <div style="font-weight:800;font-size:13px;color:var(--navy);">Fraud Proof</div>
+            <div style="font-size:11px;color:var(--text-3);">AI Verified</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="services" class="landing-section bg-white">
+    <div class="section-head">
+      <div class="section-tag"><i class="ti ti-grid-dots"></i> Our Services</div>
+      <h2>Digital Land Services</h2>
+      <p>Streamlined services available for citizens without visiting government offices.</p>
+    </div>
+    <div class="services-grid">
+      <div class="srv-card">
+        <div class="srv-icon"><i class="ti ti-arrows-exchange"></i></div>
+        <h3>Mutation Certificate</h3>
+        <p>Transfer land ownership legally and update digital records instantly after registration.</p>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="ti ti-file-certificate"></i></div>
+        <h3>Encumbrance (EC)</h3>
+        <p>Verify the property history and ensure it is free from legal dues or mortgages.</p>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="ti ti-book"></i></div>
+        <h3>Pattadar Passbook</h3>
+        <p>Apply for new e-Passbooks, duplicate passbooks, or request data corrections.</p>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="ti ti-map-pin"></i></div>
+        <h3>Survey Services</h3>
+        <p>Request official boundary verification, subdivisions, and physical land inspections.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="landing-section">
+    <div class="section-head">
+      <div class="section-tag"><i class="ti ti-sparkles"></i> Platform Features</div>
+      <h2>Advanced Platform Features</h2>
+      <p>Built with modern technology to ensure transparency, security, and speed.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feat-item">
+        <div class="f-icon red"><i class="ti ti-alert-triangle"></i></div>
+        <div class="f-text">
+          <h4>Automated Fraud Detection</h4>
+          <p>The system automatically cross-references Aadhaar, ownership data, and OCR-extracted document details to prevent identity and land theft.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="f-icon blue"><i class="ti ti-map-2"></i></div>
+        <div class="f-text">
+          <h4>GIS Boundary Mapping</h4>
+          <p>Integration with spatial data allows officials to detect land encroachment and overlapping boundaries visually and programmatically.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="f-icon teal"><i class="ti ti-qrcode"></i></div>
+        <div class="f-text">
+          <h4>Verifiable Certificates</h4>
+          <p>Every issued document contains a cryptographic QR code, allowing third-parties (banks, buyers) to instantly verify authenticity online.</p>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="f-icon gold"><i class="ti ti-sitemap"></i></div>
+        <div class="f-text">
+          <h4>Automated Workflows</h4>
+          <p>Applications are intelligently routed to the least-burdened officer in the correct jurisdiction, drastically reducing processing times.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="statistics" class="landing-section bg-navy">
+    <div class="stat-boxes">
+      <div class="s-box">
+        <div class="s-num">4.2M+</div>
+        <div class="s-lbl">Land Records Digitized</div>
+      </div>
+      <div class="s-box">
+        <div class="s-num">150k</div>
+        <div class="s-lbl">Applications Processed</div>
+      </div>
+      <div class="s-box">
+        <div class="s-num">98.6%</div>
+        <div class="s-lbl">Verification Accuracy</div>
+      </div>
+      <div class="s-box">
+        <div class="s-num">32 Hrs</div>
+        <div class="s-lbl">Avg. Turnaround Time</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="track" class="landing-section bg-white" style="text-align:center;">
+    <div class="section-head">
+      <h2>Track Your Application</h2>
+      <p>Enter your 10-character Application ID to view its current workflow status.</p>
+    </div>
+    <div class="track-form" style="max-width:500px; margin:0 auto; display:flex; gap:10px;">
+      <input type="text" class="form-control" placeholder="e.g. APP-XXXXXXXXX" style="font-family:var(--font-mono); text-transform:uppercase;">
+      <button class="btn btn-primary" onclick="alert('Please log in to track full application timelines.')"><i class="ti ti-search"></i> Track</button>
+    </div>
+  </section>
+
+  <footer class="landing-footer">
+    <div class="f-logo"><i class="ti ti-building-estate"></i> BhoomiSeva</div>
+    <p>Department of Revenue, Government of Andhra Pradesh.<br>Designed for security, transparency, and citizen empowerment.</p>
+    <div class="f-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Help & Support</a>
+      <a href="#">Contact Us</a>
+    </div>
+    <div class="f-copy">&copy; 2026 BhoomiSeva Portal. All rights reserved.</div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════ LOGIN SCREEN ══════════════════════════════ -->
+<div id="login-screen" class="hidden">
+  <div class="login-page">
+    <div class="login-hero">
+      <div class="hero-badge-login"><i class="ti ti-building-estate"></i> Government of Andhra Pradesh</div>
+      <h1 class="login-title">BhoomiSeva<br><em>Land Records</em><br>Portal</h1>
+      <p class="login-desc">A unified, secure platform for digital land record management, ownership verification, and transparent mutation tracking across the state of Andhra Pradesh.</p>
+      <div class="hero-stats" style="margin-top:0;">
+        <div class="hero-stat"><strong>4.2M+</strong><span>Records Digitized</span></div>
+        <div class="hero-stat"><strong>98.6%</strong><span>Verification Accuracy</span></div>
+        <div class="hero-stat"><strong>32 Hrs</strong><span>Avg. Processing Time</span></div>
+      </div>
+    </div>
+    <div class="login-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+        <div class="login-logo" style="margin-bottom:0;">
+          <div class="icon"><i class="ti ti-building-estate"></i></div>
+          <div><div class="name">BhoomiSeva</div><div class="sub">Smart Land Portal · AP Gov</div></div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="showLandingPage()"><i class="ti ti-arrow-left"></i> Back to Home</button>
+      </div>
+      <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Welcome back</h2>
+      <p style="font-size:13px;color:var(--text-3);margin-bottom:1.5rem;">Sign in to access the land records portal</p>
+      <div class="role-tabs">
+        <button class="role-tab active" data-role="citizen"><i class="ti ti-user"></i> Citizen</button>
+        <button class="role-tab" data-role="official"><i class="ti ti-badge"></i> Official</button>
+        <button class="role-tab" data-role="admin"><i class="ti ti-shield"></i> Admin</button>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label">Email / User ID</label>
+          <input class="form-control" id="login-email" type="email" placeholder="Enter your email" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div style="position:relative;">
+            <input class="form-control" id="login-password" type="password" placeholder="••••••••" required autocomplete="current-password" style="padding-right:40px;">
+            <button type="button" onclick="togglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text-3);"><i class="ti ti-eye" id="pass-icon"></i></button>
+          </div>
+        </div>
+        <div id="login-error" class="alert alert-danger hidden" style="margin-bottom:12px;"><i class="ti ti-alert-circle"></i><span id="login-error-text"></span></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-btn" style="margin-top:4px;"><i class="ti ti-login"></i> Sign In Securely</button>
+      </form>
+      <!-- REGISTER CTA -->
+      <div style="margin-top:16px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);border-radius:var(--radius-lg);padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;background:rgba(200,146,42,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-user-plus" style="color:var(--gold-light);font-size:20px;"></i></div>
+          <div style="flex:1;">
+            <div style="font-weight:600;font-size:13px;color:#fff;">New to BhoomiSeva?</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.6);">Create a free citizen account in 2 minutes</div>
+          </div>
+        </div>
+        <button class="btn btn-gold btn-block" style="margin-top:12px;" onclick="showRegisterPage()"><i class="ti ti-user-plus"></i> Register as a New Citizen</button>
+      </div>
+      <div style="margin-top:20px; text-align:center;">
+        <p style="font-size:13px; color:var(--text-2);">Have an official certificate?</p>
+        <a href="verify.html" class="btn btn-outline" style="margin-top:6px; display:inline-block;"><i class="ti ti-shield-check"></i> Verify Digital Certificate</a>
+      </div>
+      <p style="font-size:11px;color:var(--text-3);margin-top:1rem;text-align:center;">⚠️ Ensure backend is running on port 5000</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ REGISTER SCREEN ══════════════════════════════ -->
+<div id="register-screen">
+  <div class="register-page">
+
+    <!-- Top Bar -->
+    <div class="reg-topbar">
+      <div class="r-logo">
+        <div class="r-logo-icon"><i class="ti ti-building-estate"></i></div>
+        <div><div class="r-logo-name">BhoomiSeva</div><div class="r-logo-tag">Citizen Registration</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-outline btn-sm" onclick="showLandingPage()"><i class="ti ti-arrow-left"></i> Back to Home</button>
+        <span style="font-size:13px;color:var(--text-3);margin-left:12px;">Already have an account?</span>
+        <button class="btn btn-primary btn-sm" onclick="showLoginPage()"><i class="ti ti-login"></i> Sign In</button>
+      </div>
+    </div>
+
+    <div class="reg-body">
+      <div class="reg-container">
+
+        <!-- Page Header -->
+        <div class="reg-header">
+          <div class="step-badge"><i class="ti ti-user-plus"></i> New Citizen Registration</div>
+          <h1>Create Your BhoomiSeva Account</h1>
+          <p>Register to search land records, apply for certificates, and track applications online — completely free</p>
+        </div>
+
+        <!-- Info Banner -->
+        <div class="info-banner">
+          <div class="ib-item"><i class="ti ti-search"></i><div><strong>Search Records</strong><span>Find any land record instantly</span></div></div>
+          <div class="ib-item"><i class="ti ti-file-plus"></i><div><strong>Apply Online</strong><span>Submit verification requests</span></div></div>
+          <div class="ib-item"><i class="ti ti-radar"></i><div><strong>Track Status</strong><span>Real-time application updates</span></div></div>
+          <div class="ib-item"><i class="ti ti-certificate"></i><div><strong>Download Certs</strong><span>Get verified certificates</span></div></div>
+        </div>
+
+        <!-- Registration Form Card -->
+        <div class="reg-card" id="reg-form-card">
+          <div class="reg-card-head">
+            <div>
+              <h2>Fill in Your Details to Register</h2>
+              <p>All fields marked with * are required</p>
+            </div>
+            <div class="prog-dots">
+              <div class="pdot active" id="pd1"></div>
+              <div class="pdot" id="pd2"></div>
+              <div class="pdot" id="pd3"></div>
+            </div>
+          </div>
+          <div class="reg-card-body">
+
+            <!-- Error alert -->
+            <div id="reg-error" class="alert alert-danger hidden" style="margin-bottom:16px;">
+              <i class="ti ti-alert-circle"></i>
+              <div><strong>Please fix the following:</strong><br><span id="reg-error-text"></span></div>
+            </div>
+
+            <!-- SECTION 1: Personal Info -->
+            <div class="sec-title"><i class="ti ti-user"></i> Personal Information</div>
+            <div class="r-grid">
+              <div class="form-group s2">
+                <label class="form-label">Full Name * <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">(as per Aadhaar)</span></label>
+                <input class="form-control" id="reg-name" placeholder="e.g. Gadde Akhil Kumar" oninput="updateDots()">
+                <div class="form-error" id="err-name">Full name is required</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select class="form-control" id="reg-gender">
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other / Prefer not to say</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input class="form-control" id="reg-dob" type="date" id="reg-dob">
+                <div class="form-hint">Must be 18 years or older</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Aadhaar Number</label>
+                <input class="form-control" id="reg-aadhaar" placeholder="12-digit Aadhaar number" maxlength="12" oninput="this.value=this.value.replace(/\D/g,'')">
+                <div class="form-hint">Optional — must be unique if provided</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Father / Husband Name</label>
+                <input class="form-control" id="reg-father" placeholder="Father's or husband's name">
+              </div>
+              <div class="form-group s2">
+                <label class="form-label">Residential Address</label>
+                <input class="form-control" id="reg-address" placeholder="House No., Street, Area / Colony">
+              </div>
+            </div>
+
+            <!-- SECTION 2: Contact Info -->
+            <div class="sec-title"><i class="ti ti-phone"></i> Contact Information</div>
+            <div class="r-grid">
+              <div class="form-group">
+                <label class="form-label">Mobile Number *</label>
+                <input class="form-control" id="reg-phone" placeholder="10-digit mobile" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'');updateDots()">
+                <div class="form-error" id="err-phone">Valid 10-digit number required</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                <input class="form-control" id="reg-email" type="email" placeholder="your@email.com" oninput="updateDots()">
+                <div class="form-error" id="err-email">Valid email address required</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alternate Phone</label>
+                <input class="form-control" id="reg-altphone" placeholder="Optional alternate number" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+              </div>
+              <div class="form-group">
+                <label class="form-label">District *</label>
+                <select class="form-control" id="reg-district" onchange="updateDots(); GeoData.setupDependentDropdown('reg-district', 'reg-mandal')">
+                  <option value="">Select your district</option>
+                </select>
+                <div class="form-error" id="err-district">Please select your district</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Mandal *</label>
+                <select class="form-control" id="reg-mandal" disabled>
+                  <option value="">Select District first</option>
+                </select>
+                <div class="form-error" id="err-mandal">Please select your mandal</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Village / Town</label>
+                <input class="form-control" id="reg-village" placeholder="Your village or town">
+              </div>
+              <div class="form-group">
+                <label class="form-label">PIN Code</label>
+                <input class="form-control" id="reg-pin" placeholder="6-digit PIN code" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'')">
+              </div>
+            </div>
+
+            <!-- SECTION 3: Account Security -->
+            <div class="sec-title"><i class="ti ti-lock"></i> Account Security</div>
+            <div class="r-grid">
+              <div class="form-group">
+                <label class="form-label">Password *</label>
+                <div style="position:relative;">
+                  <input class="form-control" id="reg-password" type="password" placeholder="Min 8 characters" style="padding-right:40px;" oninput="checkStrength();updateDots()">
+                  <button type="button" onclick="toggleRegPass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;color:var(--text-3);"><i class="ti ti-eye" id="reg-pass-icon"></i></button>
+                </div>
+                <div class="str-bar"><div class="str-fill" id="str-fill"></div></div>
+                <div class="str-txt" id="str-txt"></div>
+                <div class="form-error" id="err-password">Password must be at least 8 characters</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password *</label>
+                <input class="form-control" id="reg-confirm" type="password" placeholder="Repeat your password" oninput="checkMatch()">
+                <div class="form-error" id="err-confirm">Passwords do not match</div>
+                <div class="form-hint" id="match-ok" style="display:none;color:var(--teal);"><i class="ti ti-check"></i> Passwords match</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Security Question</label>
+                <select class="form-control" id="reg-secq">
+                  <option value="">Select a question</option>
+                  <option>What is your mother's maiden name?</option>
+                  <option>What was your first school name?</option>
+                  <option>What is your childhood pet's name?</option>
+                  <option>What is the town of your birth?</option>
+                </select>
+              </div>
+              <div class="form-group s2">
+                <label class="form-label">Security Answer</label>
+                <input class="form-control" id="reg-secans" placeholder="Your answer (used for account recovery)">
+              </div>
+            </div>
+
+            <!-- Password Requirements -->
+            <div class="pwd-reqs">
+              <div style="font-size:12px;font-weight:600;color:var(--text-2);">Password requirements:</div>
+              <div class="pwd-reqs-grid">
+                <div class="req-item" id="req-len"><i class="ti ti-circle" style="font-size:10px;"></i> At least 8 characters</div>
+                <div class="req-item" id="req-upper"><i class="ti ti-circle" style="font-size:10px;"></i> One uppercase letter (A–Z)</div>
+                <div class="req-item" id="req-num"><i class="ti ti-circle" style="font-size:10px;"></i> One number (0–9)</div>
+                <div class="req-item" id="req-special"><i class="ti ti-circle" style="font-size:10px;"></i> One special character (@#$!)</div>
+              </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="terms-box">
+              <label>
+                <input type="checkbox" id="reg-terms">
+                <span>I agree to the <a href="#" style="color:var(--navy);font-weight:600;" onclick="return false;">Terms and Conditions</a> and <a href="#" style="color:var(--navy);font-weight:600;" onclick="return false;">Privacy Policy</a> of BhoomiSeva Portal. I confirm all information provided is accurate and I am a resident of Andhra Pradesh.</span>
+              </label>
+            </div>
+            <div class="terms-box">
+              <label>
+                <input type="checkbox" id="reg-consent">
+                <span>I consent to receiving SMS and email notifications about my land record applications and updates from BhoomiSeva Portal.</span>
+              </label>
+            </div>
+
+          </div><!-- end card-body -->
+
+          <div class="reg-footer">
+            <div class="already">Already have an account? <a onclick="showLoginPage()">Sign in here</a></div>
+            <button class="btn btn-primary btn-lg" id="reg-btn" onclick="doRegister()">
+              <i class="ti ti-user-plus"></i> Create My Account
+            </button>
+          </div>
+        </div><!-- end reg-form-card -->
+
+        <!-- SUCCESS CARD -->
+        <div class="reg-card hidden" id="reg-success-card">
+          <div class="reg-card-body">
+            <div class="success-wrap">
+              <div class="success-ico"><i class="ti ti-check"></i></div>
+              <h2 style="font-size:22px;font-weight:700;margin-bottom:8px;">Account Created Successfully! 🎉</h2>
+              <p style="color:var(--text-3);font-size:14px;margin-bottom:4px;">Welcome to BhoomiSeva, <strong id="suc-firstname"></strong>!</p>
+              <p style="color:var(--text-3);font-size:13px;margin-bottom:24px;">Your citizen account is ready. Login now to start using the portal.</p>
+              <div class="suc-details">
+                <div class="suc-item"><label>Full Name</label><strong id="suc-name"></strong></div>
+                <div class="suc-item"><label>Email Address</label><strong id="suc-email"></strong></div>
+                <div class="suc-item"><label>Phone Number</label><strong id="suc-phone"></strong></div>
+                <div class="suc-item"><label>District</label><strong id="suc-district"></strong></div>
+                <div class="suc-item"><label>Account Role</label><span class="badge badge-navy">Citizen</span></div>
+                <div class="suc-item"><label>Account Status</label><span class="badge badge-success"><i class="ti ti-check"></i> Active</span></div>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <button class="btn btn-primary btn-lg" onclick="goToLogin()"><i class="ti ti-login"></i> Login Now</button>
+                <button class="btn btn-outline btn-lg" onclick="registerAnother()"><i class="ti ti-user-plus"></i> Register Another</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ APP SCREEN ══════════════════════════════ -->
+<div id="app-screen" class="hidden">
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon"><i class="ti ti-building-estate"></i></div>
+        <div><div class="logo-name">BhoomiSeva</div><div class="logo-tag">Land Records Portal</div></div>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="user-chip" onclick="App.loadPage('profile')">
+          <div class="user-avatar" id="sidebar-avatar">GU</div>
+          <div class="user-info">
+            <div class="u-name" id="sidebar-name">User</div>
+            <div class="u-role" id="sidebar-role">Citizen</div>
+          </div>
+          <i class="ti ti-chevron-right" style="color:rgba(255,255,255,0.3);margin-left:auto;font-size:13px;"></i>
+        </div>
+      </div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <button class="icon-btn mobile-menu-btn" id="mobile-menu-btn"><i class="ti ti-menu-2"></i></button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-search">
+          <i class="ti ti-search"></i>
+          <input type="text" id="topbar-search-input" placeholder="Search survey no., owner, record ID… (Enter)">
+        </div>
+        <div class="topbar-actions">
+          <div class="notif-wrapper" style="position:relative;">
+            <div class="icon-btn" id="topbar-notif-btn" title="Notifications" onclick="toggleNotifPanel()">
+              <i class="ti ti-bell"></i>
+              <div class="notif-dot hidden" id="topbar-notif-dot"></div>
+            </div>
+            <div id="notif-panel" class="notif-panel hidden">
+              <div class="np-header">
+                <h3>Notifications</h3>
+                <button class="btn btn-outline btn-sm" onclick="App.markAllRead()" style="padding:4px 8px;font-size:11px;">Mark all read</button>
+              </div>
+              <div class="np-body" id="notif-panel-list">
+                <div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px;">Loading...</div>
+              </div>
+              <div class="np-footer">
+                <button class="btn btn-block btn-sm" onclick="App.loadPage('notifications'); toggleNotifPanel();">View All</button>
+              </div>
+            </div>
+          </div>
+          <div class="icon-btn" onclick="showToast('Help documentation coming soon','info')" title="Help"><i class="ti ti-help-circle"></i></div>
+          <span style="font-size:13px;font-weight:500;color:var(--text-2);padding:0 4px;" id="topbar-user-name"></span>
+          <button class="btn btn-outline btn-sm" id="logout-btn"><i class="ti ti-logout"></i> Logout</button>
+        </div>
+      </header>
+      <div class="page-content"><div id="page-container"></div></div>
+    </main>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── SET DYNAMIC MAX DOB (18 years ago from today) ──
+function setDobMax() {
+  const dobInput = document.getElementById('reg-dob');
+  if (!dobInput) return;
+  const today = new Date();
+  const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const yyyy = maxDate.getFullYear();
+  const mm = String(maxDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(maxDate.getDate()).padStart(2, '0');
+  dobInput.max = yyyy + '-' + mm + '-' + dd;
+}
+
+// ── SCREEN SWITCHING ──
+function showLandingPage() { Transitions.toLanding(); }
+
+function showLoginPage() { Transitions.toLogin(() => { if (typeof Login !== 'undefined' && typeof Login.init === 'function') Login.init(); }); }
+
+function showRegisterPage() { Transitions.toRegister(() => { document.getElementById('reg-form-card').classList.remove('hidden'); document.getElementById('reg-success-card').classList.add('hidden'); document.getElementById('reg-error').classList.add('hidden'); setDobMax(); GeoData.populateDistricts('reg-district', 'Select District'); updateDots(); window.scrollTo(0, 0); }); }
+
+function goToLogin() {
+  const email = document.getElementById('suc-email').textContent;
+  showLoginPage();
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-password').focus();
+}
+
+function registerAnother() {
+  document.getElementById('reg-form-card').classList.remove('hidden');
+  document.getElementById('reg-success-card').classList.add('hidden');
+  ['reg-name','reg-email','reg-phone','reg-aadhaar','reg-father','reg-address',
+   'reg-altphone','reg-mandal','reg-village','reg-pin','reg-password','reg-confirm','reg-secans'
+  ].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['reg-gender','reg-district','reg-secq'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('reg-terms').checked = false;
+  document.getElementById('reg-consent').checked = false;
+  document.getElementById('reg-error').classList.add('hidden');
+  document.getElementById('str-fill').style.width = '0';
+  document.getElementById('str-txt').textContent = '';
+  updateDots();
+  window.scrollTo(0, 0);
+}
+
+// ── PROGRESS DOTS ──
+function updateDots() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const district = document.getElementById('reg-district').value;
+  const pass = document.getElementById('reg-password').value;
+  const s1 = name.length > 0;
+  const s2 = email.includes('@') && phone.length === 10 && district;
+  const s3 = pass.length >= 8;
+  const set = (id, cls) => { const el = document.getElementById(id); if(el) el.className = 'pdot ' + cls; };
+  set('pd1', s1 ? 'done' : 'active');
+  set('pd2', s2 ? 'done' : (s1 ? 'active' : ''));
+  set('pd3', s3 ? 'done' : (s2 ? 'active' : ''));
+}
+
+// ── PASSWORD STRENGTH ──
+function checkStrength() {
+  const p = document.getElementById('reg-password').value;
+  const checks = { len: p.length >= 8, upper: /[A-Z]/.test(p), num: /[0-9]/.test(p), special: /[@#$!%^&*]/.test(p) };
+  const ids = { len:'req-len', upper:'req-upper', num:'req-num', special:'req-special' };
+  Object.entries(checks).forEach(([k, met]) => {
+    const el = document.getElementById(ids[k]);
+    if (!el) return;
+    el.classList.toggle('met', met);
+    el.querySelector('i').className = 'ti ' + (met ? 'ti-check-circle' : 'ti-circle');
+    el.querySelector('i').style.fontSize = '10px';
+  });
+  const score = Object.values(checks).filter(Boolean).length;
+  const cfgs = [
+    {w:'0',c:'transparent',t:''},
+    {w:'25%',c:'var(--red)',t:'Weak — too easy to guess'},
+    {w:'50%',c:'var(--amber)',t:'Fair — could be stronger'},
+    {w:'75%',c:'var(--gold)',t:'Good — add a symbol to strengthen'},
+    {w:'100%',c:'var(--teal)',t:'Strong ✓ — great password!'}
+  ];
+  const cfg = cfgs[score];
+  const fill = document.getElementById('str-fill');
+  const txt = document.getElementById('str-txt');
+  fill.style.width = cfg.w;
+  fill.style.background = cfg.c;
+  txt.textContent = cfg.t;
+  txt.style.color = cfg.c;
+}
+
+// ── CONFIRM MATCH ──
+function checkMatch() {
+  const p = document.getElementById('reg-password').value;
+  const c = document.getElementById('reg-confirm').value;
+  const err = document.getElementById('err-confirm');
+  const ok = document.getElementById('match-ok');
+  if (!c) { err.style.display='none'; ok.style.display='none'; return; }
+  if (p === c) { err.style.display='none'; ok.style.display='block'; }
+  else { err.style.display='block'; ok.style.display='none'; }
+}
+
+// ── TOGGLE NOTIF PANEL ──
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (panel) {
+    panel.classList.toggle('hidden');
+  }
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', (e) => {
+  const wrapper = document.querySelector('.notif-wrapper');
+  const panel = document.getElementById('notif-panel');
+  if (wrapper && panel && !wrapper.contains(e.target)) {
+    panel.classList.add('hidden');
+  }
+});
+function togglePass() {
+  const inp = document.getElementById('login-password');
+  const icon = document.getElementById('pass-icon');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.className = inp.type === 'password' ? 'ti ti-eye' : 'ti ti-eye-off';
+}
+function toggleRegPass() {
+  const inp = document.getElementById('reg-password');
+  const icon = document.getElementById('reg-pass-icon');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.className = inp.type === 'password' ? 'ti ti-eye' : 'ti ti-eye-off';
+}
+
+// ── FILL DEMO CREDS ──
+function fillCreds(email, pass) {
+  document.getElementById('login-email').value = email;
+  document.getElementById('login-password').value = pass;
+}
+
+// ── REGISTER SUBMIT ──
+async function doRegister() {
+  const fullName = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const aadhaarNumber = document.getElementById('reg-aadhaar').value.trim();
+  const district = document.getElementById('reg-district').value;
+  const mandal = document.getElementById('reg-mandal').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm = document.getElementById('reg-confirm').value;
+  const terms = document.getElementById('reg-terms').checked;
+
+  const errEl = document.getElementById('reg-error');
+  const errTxt = document.getElementById('reg-error-text');
+  errEl.classList.add('hidden');
+
+  // Clear old errors
+  document.querySelectorAll('.form-error').forEach(e => e.style.display='none');
+  document.getElementById('match-ok').style.display = 'none';
+
+  let valid = true;
+  const msgs = [];
+
+  if (!fullName) { document.getElementById('err-name').style.display='block'; msgs.push('Full name is required'); valid=false; }
+  if (!email || !email.includes('@')) { document.getElementById('err-email').style.display='block'; msgs.push('Valid email required'); valid=false; }
+  if (!phone || phone.length!==10) { document.getElementById('err-phone').style.display='block'; msgs.push('10-digit phone required'); valid=false; }
+  if (!district) { document.getElementById('err-district').style.display='block'; msgs.push('Please select your district'); valid=false; }
+  if (!password || password.length<8) { document.getElementById('err-password').style.display='block'; msgs.push('Password min 8 characters'); valid=false; }
+  if (password !== confirm) { document.getElementById('err-confirm').style.display='block'; msgs.push('Passwords do not match'); valid=false; }
+  if (!terms) { msgs.push('Please accept the Terms and Conditions'); valid=false; }
+
+  if (!valid) {
+    errTxt.textContent = msgs.join(' · ');
+    errEl.classList.remove('hidden');
+    errEl.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+
+  const btn = document.getElementById('reg-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Creating your account…';
+
+  try {
+    const body = { fullName, email, phone, password, role:'citizen' };
+    if (aadhaarNumber) body.aadhaarNumber = aadhaarNumber;
+    if (district) body.district = district;
+    if (mandal) body.mandal = mandal;
+
+    // Check phone and aadhaar uniqueness before submitting
+    const checkRes = await fetch('http://localhost:5000/api/auth/check-unique', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, aadhaarNumber: aadhaarNumber || undefined })
+    });
+    const checkData = await checkRes.json();
+    if (!checkData.success) throw new Error(checkData.message);
+
+    const res = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Registration failed. Please try again.');
+
+    // Show success
+    document.getElementById('reg-form-card').classList.add('hidden');
+    document.getElementById('reg-success-card').classList.remove('hidden');
+    document.getElementById('suc-firstname').textContent = fullName.split(' ')[0];
+    document.getElementById('suc-name').textContent = fullName;
+    document.getElementById('suc-email').textContent = email;
+    document.getElementById('suc-phone').textContent = phone;
+    document.getElementById('suc-district').textContent = district || '—';
+    window.scrollTo({ top:0, behavior:'smooth' });
+
+  } catch (err) {
+    errTxt.textContent = err.message;
+    errEl.classList.remove('hidden');
+    errEl.scrollIntoView({ behavior:'smooth', block:'center' });
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-user-plus"></i> Create My Account';
+  }
+}
+</script>
+<script src="js/transitions.js"></script>
+<script src="js/api.js"></script>
+<script src="js/geoData.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/pages2.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
