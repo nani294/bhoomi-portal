@@ -22,12 +22,14 @@ Pages.dashboard = {
       </div>
       <div class="stat-grid" id="stat-grid">
         ${[1,2,3,4].map(() => `
-          <div class="stat-card">
-            <div class="stat-details">
-              <div class="skeleton" style="height:28px;width:60px;margin-bottom:8px;"></div>
-              <div class="skeleton" style="height:14px;width:100px;"></div>
+          <div class="sc-card sc-navy" style="border-top:3px solid var(--border)">
+            <div class="sc-top">
+              <div class="skeleton" style="height:46px;width:46px;border-radius:13px;"></div>
+              <div class="skeleton" style="height:22px;width:80px;border-radius:20px;"></div>
             </div>
-            <div class="skeleton" style="height:48px;width:48px;border-radius:12px;"></div>
+            <div class="skeleton" style="height:44px;width:56px;border-radius:8px;margin-bottom:8px;"></div>
+            <div class="skeleton" style="height:11px;width:110px;border-radius:6px;margin-bottom:14px;"></div>
+            <div class="skeleton" style="height:3px;border-radius:3px;"></div>
           </div>`).join('')}
       </div>
       <div class="left-wide" id="dash-content">
@@ -61,6 +63,17 @@ Pages.dashboard = {
   },
 
   async loadStats(isOfficial) {
+    const makeCard = (color, icon, value, label, sub, subIcon = 'ti-point', accent = false) => `
+      <div class="sc-card sc-${color}${accent ? ' sc-accent' : ''}">
+        <div class="sc-top">
+          <div class="sc-icon-wrap sc-icon-${color}"><i class="ti ${icon}"></i></div>
+          <div class="sc-pill sc-pill-${color}"><i class="ti ${subIcon}"></i>${sub}</div>
+        </div>
+        <div class="sc-value" data-val="${value}">0</div>
+        <div class="sc-label">${label}</div>
+        <div class="sc-bar"><div class="sc-bar-fill sc-bar-${color}" style="width:${Math.min(100, Math.max(8, value * 12))}%"></div></div>
+      </div>`;
+
     try {
       const [appStats, landStats] = await Promise.all([
         api.get('/applications/stats'),
@@ -72,30 +85,32 @@ Pages.dashboard = {
       if (!grid) return;
 
       if (role === 'citizen') {
-        grid.innerHTML = `
-          <div class="stat-card c-navy"><div class="stat-icon navy"><i class="ti ti-file-text"></i></div><div class="stat-value" data-val="${a.total}">0</div><div class="stat-label">My Applications</div><div class="stat-change up"><i class="ti ti-trending-up"></i> All time</div></div>
-          <div class="stat-card c-gold"><div class="stat-icon gold"><i class="ti ti-clock"></i></div><div class="stat-value" data-val="${a.submitted + a.under_review}">0</div><div class="stat-label">In Progress</div><div class="stat-change"><i class="ti ti-minus"></i> Pending completion</div></div>
-          <div class="stat-card c-teal"><div class="stat-icon teal"><i class="ti ti-check"></i></div><div class="stat-value" data-val="${a.approved}">0</div><div class="stat-label">Approved</div><div class="stat-change up"><i class="ti ti-trending-up"></i> Completed</div></div>
-          <div class="stat-card c-red"><div class="stat-icon red"><i class="ti ti-certificate"></i></div><div class="stat-value" data-val="${Math.max(0, a.approved)}">0</div><div class="stat-label">Certificates</div><div class="stat-change up"><i class="ti ti-download"></i> Ready to download</div></div>`;
+        grid.innerHTML =
+          makeCard('navy', 'ti-file-text',    a.total,                       'My Applications',  'All time',           'ti-infinity') +
+          makeCard('gold', 'ti-loader',       a.submitted + a.under_review,  'In Progress',      'Pending completion', 'ti-clock') +
+          makeCard('teal', 'ti-circle-check', a.approved,                    'Approved',          'Completed',         'ti-trending-up') +
+          makeCard('red',  'ti-certificate',  Math.max(0, a.approved),       'Certificates',     'Ready to download',  'ti-download');
       } else if (role === 'surveyor') {
-        grid.innerHTML = `
-          <div class="stat-card c-navy"><div class="stat-icon navy"><i class="ti ti-map-pin"></i></div><div class="stat-value" data-val="${a.total}">0</div><div class="stat-label">Total Assigned</div></div>
-          <div class="stat-card c-gold"><div class="stat-icon gold"><i class="ti ti-walk"></i></div><div class="stat-value" data-val="${a.under_review}">0</div><div class="stat-label">Pending Inspection</div></div>
-          <div class="stat-card c-teal"><div class="stat-icon teal"><i class="ti ti-report"></i></div><div class="stat-value" data-val="${a.approved}">0</div><div class="stat-label">Surveys Completed</div></div>
-          <div class="stat-card c-red"><div class="stat-icon red"><i class="ti ti-alert-triangle"></i></div><div class="stat-value" data-val="${a.flagged}">0</div><div class="stat-label">Disputed Boundaries</div></div>`;
+        grid.innerHTML =
+          makeCard('navy', 'ti-map-pin',        a.total,        'Total Assigned',      'Assigned to you',    'ti-user') +
+          makeCard('gold', 'ti-walk',           a.under_review, 'Pending Inspection',  'Field visits due',   'ti-clock') +
+          makeCard('teal', 'ti-report-analytics',a.approved,    'Surveys Completed',   'All time',           'ti-trending-up') +
+          makeCard('red',  'ti-alert-triangle', a.flagged || 0, 'Disputed Boundaries', 'Needs review',       'ti-alert-triangle', true);
       } else if (role === 'tahsildar' || role === 'registrar') {
-        grid.innerHTML = `
-          <div class="stat-card c-navy"><div class="stat-icon navy"><i class="ti ti-file-text"></i></div><div class="stat-value" data-val="${a.total}">0</div><div class="stat-label">Total Applications</div></div>
-          <div class="stat-card c-gold"><div class="stat-icon gold"><i class="ti ti-user-check"></i></div><div class="stat-value" data-val="${a.under_review}">0</div><div class="stat-label">Pending My Approval</div></div>
-          <div class="stat-card c-teal"><div class="stat-icon teal"><i class="ti ti-check"></i></div><div class="stat-value" data-val="${a.approved}">0</div><div class="stat-label">Total Approved</div></div>
-          <div class="stat-card c-red"><div class="stat-icon red"><i class="ti ti-x"></i></div><div class="stat-value" data-val="${a.rejected}">0</div><div class="stat-label">Total Rejected</div></div>`;
+        grid.innerHTML =
+          makeCard('navy', 'ti-file-stack',    a.total,        'Total Applications',  'In system',          'ti-database') +
+          makeCard('gold', 'ti-user-check',    a.under_review, 'Pending Approval',    'Awaiting you',       'ti-clock', true) +
+          makeCard('teal', 'ti-circle-check',  a.approved,     'Total Approved',      'Successfully done',  'ti-trending-up') +
+          makeCard('red',  'ti-circle-x',      a.rejected,     'Total Rejected',      'Declined',           'ti-x');
       } else {
         // Revenue Officer / Admin
-        grid.innerHTML = `
-          <div class="stat-card c-navy"><div class="stat-icon navy"><i class="ti ti-file-text"></i></div><div class="stat-value" data-val="${a.total}">0</div><div class="stat-label">Total Applications</div><div class="stat-change up"><i class="ti ti-trending-up"></i> ${a.submitted} new today</div></div>
-          <div class="stat-card c-gold"><div class="stat-icon gold"><i class="ti ti-clock"></i></div><div class="stat-value" data-val="${a.submitted + a.under_review}">0</div><div class="stat-label">Pending Review</div><div class="stat-change dn"><i class="ti ti-trending-down"></i> Requires action</div></div>
-          <div class="stat-card c-teal"><div class="stat-icon teal"><i class="ti ti-shield-check"></i></div><div class="stat-value" data-val="${l.verified}">0</div><div class="stat-label">Verified Records</div><div class="stat-change up"><i class="ti ti-trending-up"></i> ${l.total} total records</div></div>
-          <div class="stat-card c-red"><div class="stat-icon red"><i class="ti ti-alert-triangle"></i></div><div class="stat-value" data-val="${a.flagged}">0</div><div class="stat-label">Fraud Alerts</div><div class="stat-change ${a.flagged > 0 ? 'up' : 'up'}"><i class="ti ti-alert-triangle"></i> ${a.flagged} active</div></div>`;
+        const newToday = a.submitted || 0;
+        const fraudActive = a.flagged || 0;
+        grid.innerHTML =
+          makeCard('navy', 'ti-file-text',      a.total,                      'Total Applications',  `${newToday} new today`,          'ti-trending-up') +
+          makeCard('gold', 'ti-hourglass',      a.submitted + a.under_review, 'Pending Review',      'Requires action',                'ti-clock', (a.submitted + a.under_review) > 0) +
+          makeCard('teal', 'ti-shield-check',   l.verified || 0,              'Verified Records',    `${l.total || 0} total records`,  'ti-database') +
+          makeCard('red',  'ti-alert-triangle', fraudActive,                  'Fraud Alerts',        `${fraudActive} active`,          'ti-alert-triangle', fraudActive > 0);
       }
 
       grid.querySelectorAll('[data-val]').forEach(el => animateNumber(el, parseInt(el.dataset.val) || 0));
