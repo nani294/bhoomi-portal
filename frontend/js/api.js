@@ -1,6 +1,6 @@
 // js/api.js — Centralized API client
 
-const API_BASE = 'https://bhoomi-portal.onrender.com/api';
+const API_BASE = 'https://bhoomi-portal-backend.onrender.com/api';
 
 const api = {
   _token: () => localStorage.getItem('bhoomi_token'),
