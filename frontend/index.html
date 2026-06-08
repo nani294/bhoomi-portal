@@ -326,7 +326,7 @@
 </div>
 
 <!-- ══════════════════════════════ REGISTER SCREEN ══════════════════════════════ -->
-<div id="register-screen" class="hidden">
+<div id="register-screen" class="hidden" style="background:#F5F7FA;min-height:100vh;">
   <div class="register-page">
 
     <!-- Top Bar -->
@@ -342,8 +342,8 @@
       </div>
     </div>
 
-    <div class="reg-body">
-      <div class="reg-container">
+    <div class="reg-body" style="background:#F5F7FA;min-height:80vh;padding:40px 24px;">
+      <div class="reg-container" style="width:100%;max-width:900px;margin:0 auto;">
 
         <!-- Page Header -->
         <div class="reg-header">
@@ -635,7 +635,39 @@ function showLandingPage() { Transitions.toLanding(); }
 
 function showLoginPage() { Transitions.toLogin(() => { if (typeof Login !== 'undefined' && typeof Login.init === 'function') Login.init(); }); }
 
-function showRegisterPage() { Transitions.toRegister(() => { document.getElementById('reg-form-card').classList.remove('hidden'); document.getElementById('reg-success-card').classList.add('hidden'); document.getElementById('reg-error').classList.add('hidden'); setDobMax(); GeoData.populateDistricts('reg-district', 'Select District'); updateDots(); window.scrollTo(0, 0); }); }
+function showRegisterPage() {
+  try {
+    // Hide all other screens
+    ['landing-screen','login-screen','app-screen'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
+    });
+    // Show register screen
+    const reg = document.getElementById('register-screen');
+    if (reg) {
+      reg.classList.remove('hidden');
+      reg.style.display = 'block';
+      reg.style.minHeight = '100vh';
+      reg.style.background = '#F5F7FA';
+    }
+    // Setup form
+    const formCard = document.getElementById('reg-form-card');
+    const sucCard = document.getElementById('reg-success-card');
+    const errEl = document.getElementById('reg-error');
+    if (formCard) formCard.classList.remove('hidden');
+    if (sucCard) sucCard.classList.add('hidden');
+    if (errEl) errEl.classList.add('hidden');
+    if (typeof setDobMax === 'function') setDobMax();
+    if (typeof GeoData !== 'undefined') GeoData.populateDistricts('reg-district', 'Select District');
+    if (typeof updateDots === 'function') updateDots();
+    window.scrollTo(0, 0);
+  } catch(e) {
+    console.error('showRegisterPage error:', e);
+    // Fallback: just show the screen
+    const reg = document.getElementById('register-screen');
+    if (reg) { reg.style.display = 'block'; reg.classList.remove('hidden'); }
+  }
+}
 
 function goToLogin() {
   const email = document.getElementById('suc-email').textContent;
