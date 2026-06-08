@@ -801,7 +801,7 @@ async function doRegister() {
     if (mandal) body.mandal = mandal;
 
     // Check phone and aadhaar uniqueness before submitting
-    const checkRes = await fetch('http://localhost:5000/api/auth/check-unique', {
+    const checkRes = await fetch('https://bhoomi-portal-backend.onrender.com/api/auth/check-unique', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone, aadhaarNumber: aadhaarNumber || undefined })
@@ -809,7 +809,7 @@ async function doRegister() {
     const checkData = await checkRes.json();
     if (!checkData.success) throw new Error(checkData.message);
 
-    const res = await fetch('http://localhost:5000/api/auth/register', {
+    const res = await fetch('https://bhoomi-portal-backend.onrender.com/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
