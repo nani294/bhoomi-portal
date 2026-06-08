@@ -343,9 +343,19 @@ Pages.apply = {
     statusEl.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--text-3);"><span class="loading-spinner" style="width:14px; height:14px; margin-right:8px;"></span> Uploading ${file.name}…</div>`;
 
     try {
+      const docTypeMap = {
+        aadhaarCard: 'aadhaar',
+        saleDeed: 'sale_deed',
+        passbook: 'pattadar_passbook',
+        deathCertificate: 'other',
+        legalHeirCertificate: 'other',
+        ownershipDocument: 'other',
+        firCopy: 'other',
+        supportingDocument: 'other'
+      };
       const fd = new FormData();
       fd.append('document', file);
-      fd.append('documentType', key);
+      fd.append('documentType', docTypeMap[key] || 'other');
 
       const res = await api.upload('/documents/upload', fd);
       this.uploadedDocs[key] = { id: res.data._id, name: file.name, path: res.data.filePath };
@@ -1150,7 +1160,7 @@ Pages.applications = {
     try {
       const fd = new FormData();
       fd.append('document', file);
-      fd.append('documentType', 'surveyReport');
+      fd.append('documentType', 'survey_map');
       const res = await api.upload('/documents/upload', fd);
       
       await this.updateStatus(id, 'survey_completed', { 
