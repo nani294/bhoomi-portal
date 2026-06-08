@@ -17,7 +17,7 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <style>
-#register-screen { display:none; min-height:100vh; }
+#register-screen { min-height:100vh; }
 .register-page { min-height:100vh; background:var(--surface); display:flex; flex-direction:column; }
 .reg-topbar { background:var(--white); border-bottom:1px solid var(--border); padding:14px 32px; display:flex; align-items:center; justify-content:space-between; }
 .reg-topbar .r-logo { display:flex; align-items:center; gap:10px; }
@@ -326,7 +326,7 @@
 </div>
 
 <!-- ══════════════════════════════ REGISTER SCREEN ══════════════════════════════ -->
-<div id="register-screen">
+<div id="register-screen" class="hidden">
   <div class="register-page">
 
     <!-- Top Bar -->
