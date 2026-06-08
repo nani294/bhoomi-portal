@@ -30,12 +30,8 @@ const Transitions = {
     // Show the target screen
     const target = document.getElementById(showId);
     if (target) {
-      if (showId === 'register-screen') {
-        target.style.display = 'block';
-      } else {
-        target.classList.remove('hidden');
-        target.style.display = '';
-      }
+      target.classList.remove('hidden');
+      target.style.display = '';
       // Run any additional setup
       if (typeof showFn === 'function') showFn();
       // Animate in
