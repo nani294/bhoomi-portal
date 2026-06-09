@@ -1933,6 +1933,28 @@ Pages.users = {
     const desGrp = document.getElementById('nu-desig-group');
     if (empGrp) empGrp.style.display = showEmp ? '' : 'none';
     if (desGrp) desGrp.style.display = showEmp ? '' : 'none';
+
+    // District required for all officer roles; mandal required for tahsildar & revenue_staff
+    const districtGrp = document.getElementById('nu-district') && document.getElementById('nu-district').closest('.form-group');
+    const mandalGrp = document.getElementById('nu-mandal') && document.getElementById('nu-mandal').closest('.form-group');
+    const districtEl = document.getElementById('nu-district');
+    const mandalEl = document.getElementById('nu-mandal');
+
+    const needsDistrict = role !== 'citizen';
+    const needsMandal = ['tahsildar', 'revenue_staff'].includes(role);
+
+    if (districtGrp) {
+      const lbl = districtGrp.querySelector('.form-label');
+      if (lbl) lbl.textContent = needsDistrict ? 'District *' : 'District';
+    }
+    if (districtEl) districtEl.required = needsDistrict;
+
+    if (mandalGrp) {
+      mandalGrp.style.display = needsDistrict ? '' : 'none';
+      const lbl = mandalGrp.querySelector('.form-label');
+      if (lbl) lbl.textContent = needsMandal ? 'Mandal *' : 'Mandal';
+    }
+    if (mandalEl) mandalEl.required = needsMandal;
   },
 
   async createUser() {
@@ -1955,6 +1977,8 @@ Pages.users = {
     if (!email || !email.includes('@')) { errTxt.textContent = 'Valid email address is required.'; errEl.classList.remove('hidden'); return; }
     if (!phone || phone.length !== 10) { errTxt.textContent = 'Valid 10-digit phone number is required.'; errEl.classList.remove('hidden'); return; }
     if (!password || password.length < 8) { errTxt.textContent = 'Password must be at least 8 characters.'; errEl.classList.remove('hidden'); return; }
+    if (role !== 'citizen' && !district) { errTxt.textContent = 'District is required for officer accounts.'; errEl.classList.remove('hidden'); return; }
+    if (['tahsildar', 'revenue_staff'].includes(role) && !mandal) { errTxt.textContent = 'Mandal is required for Tahsildar and Revenue Staff accounts.'; errEl.classList.remove('hidden'); return; }
 
     const btn = document.getElementById('add-user-btn');
     btn.disabled = true;
