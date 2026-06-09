@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { protect, authorize } = require('../middleware/auth');
 const { Document, AuditLog } = require('../models/index');
+const { extractOCRData } = require('../utils/ocrService');
 
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -44,106 +45,111 @@ router.post('/upload', upload.single('document'), async (req, res, next) => {
       relatedLandRecord: req.body.landRecordId || null,
       ocrStatus: 'pending'
     });
-    // Simulate OCR Extraction & Identity Verification
-    setTimeout(async () => {
+    // ── Real OCR & Fraud Consistency Check ──────────────────────────────────
+    // Runs asynchronously so the upload response is returned immediately.
+    // Uses tesseract.js (images) or pdf-parse (PDFs) to read the actual file.
+    setImmediate(async () => {
       try {
         const Application = require('../models/Application');
-        
-        // --- BACKEND SECURITY: Do NOT trust body hints (ownerName, etc) ---
-        // For simulation, we use the Application data to decide if it's a "Match" or "Mismatch"
-        // in a real system, this would be actual OCR extraction.
-        
-        let extractedData = {
-          ownerName: 'Security Check Failed',
-          aadhaarNumber: '000000000000',
-          surveyNumber: 'MISMATCH-000',
-          confidence: 0
-        };
+        const fullFilePath = path.join(__dirname, '../uploads', doc.fileName);
 
-        if (doc.relatedApplication) {
-          const app = await Application.findById(doc.relatedApplication);
-          if (app) {
-             // Simulating a 90% success rate for "Extracted Data"
-             const isSuccess = Math.random() > 0.1;
-             extractedData = {
-               ownerName: isSuccess ? app.applicantName : 'Forged Name',
-               aadhaarNumber: isSuccess ? app.aadhaarNumber : '999999999999',
-               surveyNumber: isSuccess ? (app.surveyNumber || 'LAND-101') : 'ERR-404',
-               registrationNumber: `REG-${Math.floor(Math.random()*1000)}`,
-               village: app.village || 'UNKNOWN',
-               mandal: app.mandal || 'UNKNOWN',
-               district: app.district || 'UNKNOWN',
-               extent: app.extent || '1.0',
-               confidence: Math.floor(Math.random() * 10 + 85)
-             };
+        // Mark as processing
+        await Document.findByIdAndUpdate(doc._id, { ocrStatus: 'processing' });
+
+        // ── Step 1: Real OCR extraction ──────────────────────────────────
+        let extractedData;
+        try {
+          extractedData = await extractOCRData(fullFilePath, doc.mimeType);
+        } catch (ocrErr) {
+          console.error(`[OCR] Failed on ${doc.fileName}:`, ocrErr.message);
+          await Document.findByIdAndUpdate(doc._id, { ocrStatus: 'failed' });
+          return;
+        }
+
+        await Document.findByIdAndUpdate(doc._id, {
+          ocrStatus: 'completed',
+          ocrData: extractedData
+        });
+
+        console.log(`[OCR] ${doc.fileName} → confidence ${extractedData.confidence}%`);
+
+        // ── Step 2: Consistency check against the application ────────────
+        if (!doc.relatedApplication) return;
+
+        const app = await Application.findById(doc.relatedApplication);
+        if (!app) return;
+
+        const mismatches = [];
+        let docRiskScore = 0;
+
+        // Helper: normalise strings for comparison (lower, trim, collapse spaces)
+        const norm = (s) => (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+
+        // Only run checks when OCR actually extracted the field (non-null)
+        // Identity checks — Aadhaar / ID proof
+        if (doc.documentType === 'aadhaar' || doc.documentType === 'id_proof') {
+          if (extractedData.ownerName &&
+              norm(extractedData.ownerName) !== norm(app.applicantName)) {
+            mismatches.push('Name Mismatch (ID vs Application)');
+            docRiskScore += 20;
+          }
+          if (extractedData.aadhaarNumber &&
+              extractedData.aadhaarNumber !== app.aadhaarNumber) {
+            mismatches.push('Aadhaar Mismatch (ID vs Application)');
+            docRiskScore += 40;
           }
         }
 
-        const updatedDoc = await Document.findByIdAndUpdate(doc._id, {
-          ocrStatus: 'completed',
-          ocrData: { ...extractedData, rawText: `Extracted secure metadata for ${doc.documentType}` }
-        }, { new: true });
-
-        // If linked to an application, run consistency check
-        if (doc.relatedApplication) {
-          const app = await Application.findById(doc.relatedApplication);
-          if (app) {
-            const mismatches = [];
-            let docRiskScore = 0;
-
-            // Identity Consistency Rules
-            if (doc.documentType === 'aadhaar' || doc.documentType === 'id_proof') {
-              if (extractedData.ownerName.toLowerCase() !== app.applicantName.toLowerCase()) {
-                mismatches.push('Name Mismatch (ID vs Application)');
-                docRiskScore += 20;
-              }
-              if (extractedData.aadhaarNumber !== app.aadhaarNumber) {
-                mismatches.push('Aadhaar Mismatch (ID vs Application)');
-                docRiskScore += 40;
-              }
-            }
-
-            // Land Consistency Rules
-            if (['sale_deed', 'pattadar_passbook', 'mutation_deed', 'encumbrance_certificate', 'possession_certificate', 'survey_map'].includes(doc.documentType)) {
-              if (app.surveyNumber && extractedData.surveyNumber !== app.surveyNumber) {
-                mismatches.push(`Survey Number Mismatch (${doc.documentType})`);
-                docRiskScore += 40;
-              }
-              if (app.village && extractedData.village !== app.village) {
-                mismatches.push('Village Mismatch (Document vs Application)');
-                docRiskScore += 15;
-              }
-              if (app.district && extractedData.district !== app.district) {
-                mismatches.push('District Mismatch (Document vs Application)');
-                docRiskScore += 15;
-              }
-              if (app.extent && extractedData.extent !== app.extent) {
-                mismatches.push('Extent Mismatch (Document vs Application)');
-                docRiskScore += 25;
-              }
-            }
-
-            if (mismatches.length > 0) {
-              app.isFlagged = true;
-              app.fraudScore = (app.fraudScore || 0) + docRiskScore;
-              // Add only new reasons
-              mismatches.forEach(m => {
-                if (!app.flagReasons.includes(m)) app.flagReasons.push(m);
-              });
-              await app.save();
-              
-              await AuditLog.create({
-                action: 'Document Inconsistency Detected', module: 'document',
-                entityId: app._id, details: `Mismatches in ${doc.documentType}: ${mismatches.join(', ')}`,
-                ipAddress: 'System'
-              });
-            }
+        // Land document checks
+        const landDocTypes = [
+          'sale_deed', 'pattadar_passbook', 'mutation_deed',
+          'encumbrance_certificate', 'possession_certificate', 'survey_map'
+        ];
+        if (landDocTypes.includes(doc.documentType)) {
+          if (extractedData.surveyNumber && app.surveyNumber &&
+              norm(extractedData.surveyNumber) !== norm(app.surveyNumber)) {
+            mismatches.push(`Survey Number Mismatch (${doc.documentType})`);
+            docRiskScore += 40;
           }
+          if (extractedData.village && app.village &&
+              norm(extractedData.village) !== norm(app.village)) {
+            mismatches.push('Village Mismatch (Document vs Application)');
+            docRiskScore += 15;
+          }
+          if (extractedData.district && app.district &&
+              norm(extractedData.district) !== norm(app.district)) {
+            mismatches.push('District Mismatch (Document vs Application)');
+            docRiskScore += 15;
+          }
+          if (extractedData.extent && app.extent &&
+              norm(extractedData.extent) !== norm(app.extent)) {
+            mismatches.push('Extent Mismatch (Document vs Application)');
+            docRiskScore += 25;
+          }
+        }
+
+        if (mismatches.length > 0) {
+          app.isFlagged = true;
+          app.fraudScore = (app.fraudScore || 0) + docRiskScore;
+          mismatches.forEach(m => {
+            if (!app.flagReasons.includes(m)) app.flagReasons.push(m);
+          });
+          await app.save();
+
+          await AuditLog.create({
+            action: 'Document Inconsistency Detected', module: 'document',
+            entityId: app._id,
+            details: `Real OCR mismatches in ${doc.documentType}: ${mismatches.join(', ')} (confidence: ${extractedData.confidence}%)`,
+            ipAddress: 'System'
+          });
+
+          console.log(`[OCR] Fraud flags raised for app ${app.applicationId}: ${mismatches.join(', ')}`);
         }
       } catch (err) {
-        console.error('OCR Background Task Error:', err);
+        console.error('[OCR] Background task error:', err);
+        await Document.findByIdAndUpdate(doc._id, { ocrStatus: 'failed' }).catch(() => {});
       }
-    }, 2000);
+    });
 
     await AuditLog.create({
       user: req.user._id, userName: req.user.fullName, userRole: req.user.role,
