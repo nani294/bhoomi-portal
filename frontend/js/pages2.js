@@ -926,10 +926,10 @@ Pages.applications = {
                     <div><strong style="font-size:11px;color:var(--text-3);text-transform:uppercase;">Survey Number</strong><p class="mono">${a.surveyNumber}${a.subDivisionNumber ? ' / '+a.subDivisionNumber : ''}</p></div>
                     <div><strong style="font-size:11px;color:var(--text-3);text-transform:uppercase;">Location</strong><p>${a.village}, ${a.mandal}, ${a.district}</p></div>
                     <div><strong style="font-size:11px;color:var(--text-3);text-transform:uppercase;">Extent</strong><p>${a.extent || '—'}</p></div>
-                    <div><strong style="font-size:11px;color:var(--text-3);text-transform:uppercase;">Assigned Officer</strong><p>${a.assignedOfficer || 'Unassigned'} ${a.assignedTo && a.assignedTo._id === Auth.user._id ? '<strong>(You)</strong>' : ''}</p></div>
+                    <div><strong style="font-size:11px;color:var(--text-3);text-transform:uppercase;">Assigned Officer</strong><p>${a.assignedOfficer || 'Unassigned'} ${a.assignedTo && a.assignedTo._id?.toString() === Auth.user._id?.toString() ? '<strong>(You)</strong>' : ''}</p></div>
                   </div>
 
-                  ${a.assignedTo && a.assignedTo._id !== Auth.user._id && !Auth.hasRole('admin') ? `
+                  ${a.assignedTo && a.assignedTo._id?.toString() !== Auth.user._id?.toString() && !Auth.hasRole('admin') ? `
                     <div class="alert alert-info" style="margin-bottom:20px; font-size:12px;">
                       <i class="ti ti-lock"></i> READ-ONLY: This application is assigned to ${a.assignedOfficer}.
                     </div>
@@ -1025,7 +1025,7 @@ Pages.applications = {
               <button class="btn btn-outline" onclick="closeModal('app-modal')">Close</button>
               
               <!-- ONLY SHOW ACTIONS IF ASSIGNED OR ADMIN -->
-              ${(a.assignedTo && a.assignedTo._id === Auth.user._id) || Auth.hasRole('admin') ? `
+              ${(a.assignedTo && a.assignedTo._id?.toString() === Auth.user._id?.toString()) || Auth.hasRole('admin') ? `
                 
                 <!-- REVENUE OFFICER ACTIONS -->
                 ${Auth.canVerifyDocs() && a.status === 'submitted' ? `

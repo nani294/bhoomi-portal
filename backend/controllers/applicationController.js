@@ -68,7 +68,7 @@ const autoAssign = async (app, targetRole, assignedBy = null, reason = 'System a
     let officers = await User.find({ 
       role: targetRole, 
       isActive: true, 
-      district: app.district 
+      ...(app.district ? { district: app.district } : {})
     });
 
     // Fallback: search role-wide if no local officer found
@@ -286,9 +286,13 @@ exports.getApplications = async (req, res, next) => {
       query.applicant = req.user._id;
     } 
     // REGIONAL ENFORCEMENT: Restrict to user's district for officials
+    // Only tahsildar and revenue_staff are mandal-scoped; verifiers/surveyors see whole district
     else if (req.user.role !== 'admin' && req.user.district) {
       query.district = req.user.district;
-      if (req.user.mandal) query.mandal = req.user.mandal;
+      const mandalScopedRoles = ['tahsildar', 'revenue_staff'];
+      if (req.user.mandal && mandalScopedRoles.includes(req.user.role)) {
+        query.mandal = req.user.mandal;
+      }
     }
 
     if (status) query.status = status;
@@ -348,8 +352,7 @@ exports.getApplication = async (req, res, next) => {
       .populate('documents.legalHeirCertificate')
       .populate('documents.ownershipDocument')
       .populate('documents.firCopy')
-      .populate('documents.supportingDocument')
-      .populate('certificate');
+      .populate('documents.supportingDocument');
 
     if (!app) return res.status(404).json({ success: false, message: 'Application not found.' });
     if (req.user.role === 'citizen' && app.applicant._id.toString() !== req.user._id.toString()) {
