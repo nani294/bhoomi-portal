@@ -326,12 +326,14 @@ exports.getApplications = async (req, res, next) => {
 const checkJurisdiction = async (req, record) => {
   if (req.user.role === 'admin' || req.user.role === 'citizen') return true;
   if (!req.user.district || !record.district) return true; // Failsafe
-  
+
   if (req.user.district !== record.district) {
     await logAudit(req.user, 'Unauthorized District Access Attempt', `User from ${req.user.district} tried to access application in ${record.district}`, record._id, req);
     return false;
   }
-  if (req.user.mandal && record.mandal && req.user.mandal !== record.mandal) {
+  // Only tahsildar and revenue_staff are mandal-scoped; verifiers/surveyors work district-wide
+  const mandalScopedRoles = ['tahsildar', 'revenue_staff'];
+  if (mandalScopedRoles.includes(req.user.role) && req.user.mandal && record.mandal && req.user.mandal !== record.mandal) {
     await logAudit(req.user, 'Unauthorized Mandal Access Attempt', `User from ${req.user.mandal} tried to access application in ${record.mandal}`, record._id, req);
     return false;
   }
@@ -621,10 +623,13 @@ exports.getStats = async (req, res, next) => {
     if (role === 'citizen') {
       query.applicant = req.user._id;
     } 
-    // Officials only see their district
+    // Officials only see their district; only tahsildar/revenue_staff are mandal-scoped
     else if (role !== 'admin' && req.user.district) {
       query.district = req.user.district;
-      if (req.user.mandal) query.mandal = req.user.mandal;
+      const mandalScopedRoles = ['tahsildar', 'revenue_staff'];
+      if (req.user.mandal && mandalScopedRoles.includes(role)) {
+        query.mandal = req.user.mandal;
+      }
     }
 
     const [total, submitted, under_review, approved, rejected, flagged, byType] = await Promise.all([
