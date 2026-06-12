@@ -964,7 +964,7 @@ Pages.applications = {
                                 </div>
                               </div>
                               <div style="display:flex;gap:4px;">
-                                <a href="http://127.0.0.1:5000${d.filePath}" target="_blank" class="btn btn-outline btn-sm" title="View"><i class="ti ti-external-link"></i></a>
+                                <a href="${API_BASE.replace(/\/api$/, '')}${d.filePath}" target="_blank" class="btn btn-outline btn-sm" title="View"><i class="ti ti-external-link"></i></a>
                                 ${Auth.isOfficialRole() && d.verificationStatus === 'pending' ? `
                                   <button class="btn btn-success btn-sm" onclick="Pages.applications.verifyDoc('${a._id}','${d._id}','verified')" title="Verify"><i class="ti ti-check"></i></button>
                                   <button class="btn btn-danger btn-sm" onclick="Pages.applications.verifyDoc('${a._id}','${d._id}','rejected')" title="Reject"><i class="ti ti-x"></i></button>
@@ -1176,7 +1176,7 @@ Pages.applications = {
       const res = await api.get(`/applications/${id}/download-certificate`, { responseType: 'blob' });
       // Note: Centralized api client might need a tweak for blob, but usually we can use fetch for direct downloads
       const token = localStorage.getItem('bhoomi_token');
-      const response = await fetch(`http://127.0.0.1:5000/api/applications/${id}/download-certificate`, {
+      const response = await fetch(`${API_BASE}/applications/${id}/download-certificate`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to download certificate.');
