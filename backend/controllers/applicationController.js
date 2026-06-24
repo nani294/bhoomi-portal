@@ -67,7 +67,7 @@ const autoAssign = async (app, targetRole, assignedBy = null, reason = 'System a
     // 1. Find all active officers for this role in the same district/mandal
     let officers = await User.find({ 
       role: targetRole, 
-      isActive: true, 
+      isActive: true,
       ...(app.district ? { district: app.district } : {})
     });
 
@@ -247,6 +247,7 @@ exports.createApplication = async (req, res, next) => {
 
     // Auto-assign to Verification Officer
     await autoAssign(application, ROLES.VERIFIER, null, 'Initial submission routing');
+    await application.save(); // Persist assignment to DB
 
     // Log Fraud Event if flagged
     if (fraudScore > 0) {
@@ -326,7 +327,7 @@ exports.getApplications = async (req, res, next) => {
 const checkJurisdiction = async (req, record) => {
   if (req.user.role === 'admin' || req.user.role === 'citizen') return true;
   if (!req.user.district || !record.district) return true; // Failsafe
-
+  
   if (req.user.district !== record.district) {
     await logAudit(req.user, 'Unauthorized District Access Attempt', `User from ${req.user.district} tried to access application in ${record.district}`, record._id, req);
     return false;
