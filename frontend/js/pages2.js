@@ -980,14 +980,14 @@ Pages.applications = {
                                   <span style="color:var(--teal);">${d.ocrData.confidence}% Confidence</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px;">
-                                  <div style="color:var(--text-2);">Name: <span style="font-weight:600; ${d.ocrData.ownerName.toLowerCase() !== a.applicantName.toLowerCase() ? 'color:var(--red);' : ''}">${d.ocrData.ownerName}</span></div>
+                                  <div style="color:var(--text-2);">Name: <span style="font-weight:600; ${(d.ocrData.ownerName?.toLowerCase() || '') !== (a.applicantName?.toLowerCase() || '') ? 'color:var(--red);' : ''}">${d.ocrData.ownerName || '—'}</span></div>
                                   <div style="color:var(--text-2);">Survey: <span style="font-weight:600; ${a.surveyNumber && d.ocrData.surveyNumber !== a.surveyNumber ? 'color:var(--red);' : ''}">${d.ocrData.surveyNumber}</span></div>
                                   <div style="color:var(--text-2);">Village: <span style="font-weight:600; ${a.village && d.ocrData.village !== a.village ? 'color:var(--red);' : ''}">${d.ocrData.village}</span></div>
                                   <div style="color:var(--text-2);">Reg No: <span style="font-weight:600;">${d.ocrData.registrationNumber || '—'}</span></div>
                                   <div style="color:var(--text-2);">District: <span style="font-weight:600; ${a.district && d.ocrData.district !== a.district ? 'color:var(--red);' : ''}">${d.ocrData.district}</span></div>
                                   <div style="color:var(--text-2);">Extent: <span style="font-weight:600; ${a.extent && d.ocrData.extent !== a.extent ? 'color:var(--red);' : ''}">${d.ocrData.extent}</span></div>
                                 </div>
-                                ${ (d.ocrData.ownerName.toLowerCase() !== a.applicantName.toLowerCase() || (a.surveyNumber && d.ocrData.surveyNumber !== a.surveyNumber) || (a.village && d.ocrData.village !== a.village)) ? `
+                                ${ ((d.ocrData.ownerName?.toLowerCase() || '') !== (a.applicantName?.toLowerCase() || '') || (a.surveyNumber && d.ocrData.surveyNumber !== a.surveyNumber) || (a.village && d.ocrData.village !== a.village)) ? `
                                   <div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.05); color:var(--red); font-size:10px; font-weight:700;">
                                     <i class="ti ti-alert-triangle"></i> CONSISTENCY WARNING: Data Mismatch Detected
                                   </div>
